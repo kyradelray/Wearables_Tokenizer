@@ -244,3 +244,52 @@ def calculate_statistics(data):
     print(f"Range: {range_data}")
     print(f"IQR: {iqr_data}")
     print(f"95% Confidence Interval: ({ci1}, {ci2})")
+
+
+def assign_labels(values, cuts, labels):
+    """
+    Assigns to each value the label of the nearest cut point.
+    The cut point closest to 0 is always assigned the label 'A'.
+
+    Parameters:
+    - values (array-like): Input values to label.
+    - cuts (array-like): Reference cut points.
+    - labels (array-like): Labels corresponding to each cut point.
+
+    Returns:
+    - List of assigned labels.
+    """
+    cuts = np.array(cuts)
+    labels = np.array(labels, dtype=object)  # Allow string mutation
+
+    if len(cuts) != len(labels):
+        raise ValueError("Length of cuts and labels must be equal.")
+
+    # Assign 'A' to the cut closest to zero
+    idx_zero = np.argmin(np.abs(cuts))
+    labels[idx_zero] = 'A'
+
+    values = np.array(values)
+    assigned_indices = np.argmin(np.abs(values[:, None] - cuts[None, :]), axis=1)
+    return labels[assigned_indices].tolist()
+
+
+def labels_to_string(labels):
+    """
+    Convert a list of labels to a string where consecutive 'A's are replaced with ' X ',
+    where X is the number of 'A's in the group. Other labels are left unchanged.
+    """
+    result = []
+    count_a = 0
+
+    for label in labels + ['']:  # Add sentinel to flush final 'A's
+        if label == 'A':
+            count_a += 1
+        else:
+            if count_a > 0:
+                result.append(f' {count_a} ')
+                count_a = 0
+            if label != '':
+                result.append(label)
+
+    return ''.join(result)
